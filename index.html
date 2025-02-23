@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cotizador de Seguros - PreEntrega1+Santana</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Cotizador de Seguros</h1>
+    <form id="cotizadorForm">
+        <label for="tipo">Tipo de cobertura:</label>
+        <select id="tipo" required>
+            <option value="basica">Básica</option>
+            <option value="total">Total</option>
+            <option value="premium">Premium</option>
+        </select>
+
+        <label for="duracion">Duración (en meses):</label>
+        <input type="number" id="duracion" required placeholder="Ingrese la duración">
+
+        <button type="submit">Cotizar</button>
+    </form>
+
+    <h2>Resultado:</h2>
+    <p id="resultado"></p>
+
+    <script src="js/main.js"></script>
+</body>
+</html>
