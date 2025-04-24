@@ -3,56 +3,190 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="styles.css">
-    <title>Corredor de Seguros</title>
+    <title>Simulador de Seguros | Curso JavaScript</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <style>
+        .card {
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .progress {
+            height: 25px;
+        }
+        
+        .fade-out {
+            animation: fadeOut 1s;
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+    </style>
 </head>
 <body>
-    <h1>Corredor de Seguros</h1>
+    
 
-    <!-- Formulario para cotizar -->
-    <form id="cotizadorForm">
-        <label for="nombre">Nombre del cliente:</label>
-        <input type="text" id="nombre" required placeholder="Ingrese su nombre">
-        <span id="nombreError" class="error"></span>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">Seguros Plus</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#cotizador">Cotizador</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#clientes">Clientes</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#estadisticas">Estadísticas</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
 
-        <label for="edad">Edad:</label>
-        <input type="number" id="edad" required placeholder="Ingrese su edad">
-        <span id="edadError" class="error"></span>
+    <div class="container my-5">
+        <section id="cotizador">
+            <h2 class="text-center mb-4 animate__animated animate__fadeIn">Simulador de Seguros</h2>
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div class="card shadow">
+                        <div class="card-body">
+                            <form id="cotizadorForm">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="nombre" class="form-label">Nombre completo</label>
+                                        <input type="text" class="form-control" id="nombre" required>
+                                        <div id="nombreError" class="invalid-feedback"></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="edad" class="form-label">Edad</label>
+                                        <input type="number" class="form-control" id="edad" required>
+                                        <div id="edadError" class="invalid-feedback"></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="tipo" class="form-label">Tipo de seguro</label>
+                                        <select class="form-select" id="tipo" required>
+                                            <option value="">Seleccione...</option>
+                                        </select>
+                                        <div id="tipoError" class="invalid-feedback"></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="duracion" class="form-label">Duración (meses)</label>
+                                        <input type="number" class="form-control" id="duracion" required>
+                                        <div id="duracionError" class="invalid-feedback"></div>
+                                    </div>
+                                    <div class="col-12">
+                                        <button type="submit" class="btn btn-primary w-100 py-2">
+                                            <span id="submitText">Calcular Cotización</span>
+                                            <span id="submitSpinner" class="spinner-border spinner-border-sm d-none" role="status"></span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-        <label for="tipo">Tipo de cobertura:</label>
-        <select id="tipo" required>
-            <option value="">Seleccione...</option>
-            <option value="basica">Básica ($500/mes)</option>
-            <option value="completa">Completa ($1000/mes)</option>
-            <option value="premium">Premium ($1500/mes)</option>
-        </select>
-        <span id="tipoError" class="error"></span>
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <div class="card shadow">
+                        <div class="card-body">
+                            <h5 class="card-title">Resultado de Cotización</h5>
+                            <div id="resultado" class="text-center py-4">
+                                <p class="text-muted">Complete el formulario para ver su cotización</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card shadow">
+                        <div class="card-body">
+                            <h5 class="card-title">Resumen Total</h5>
+                            <div id="totalSeguros" class="text-center py-4">
+                                <p class="text-muted">No hay clientes registrados</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-        <label for="duracion">Duración (en meses):</label>
-        <input type="number" id="duracion" required placeholder="Ej: 12">
-        <span id="duracionError" class="error"></span>
+        <section id="clientes" class="mt-5">
+            <h2 class="text-center mb-4">Clientes Registrados</h2>
+            <div class="card shadow">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Edad</th>
+                                    <th>Seguro</th>
+                                    <th>Duración</th>
+                                    <th>Fecha</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="listaClientes">
+                                <tr>
+                                    <td colspan="6" class="text-center">No hay clientes registrados</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="d-flex justify-content-between mt-3">
+                        <button id="exportarClientes" class="btn btn-outline-primary">
+                            Exportar a JSON
+                        </button>
+                        <button id="limpiarClientes" class="btn btn-outline-danger">
+                            Limpiar Todos
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-        <button type="submit">Cotizar</button>
-    </form>
-
-    <!-- Botón para limpiar datos -->
-    <button id="limpiarStorage">Limpiar Todos los Datos</button>
-
-    <!-- Resultados -->
-    <div id="resultados">
-        <h2>Cotización Actual:</h2>
-        <p id="resultado"></p>
-        
-        <h2>Total de todos los seguros:</h2>
-        <p id="totalSeguros"></p>
-        
-        <h2>Seguros Disponibles:</h2>
-        <ul id="listaSeguros"></ul>
-        
-        <h2>Clientes Registrados:</h2>
-        <ul id="listaClientes"></ul>
+        <section id="estadisticas" class="mt-5">
+            <h2 class="text-center mb-4">Estadísticas</h2>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card shadow mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">Distribución de Seguros</h5>
+                            <div id="graficoSeguros" style="height: 300px;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card shadow mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">Ingresos por Mes</h5>
+                            <div id="graficoIngresos" style="height: 300px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
     </div>
 
-    <script src="js/main.js"></script>
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container text-center">
+            <p>Simulador de Seguros &copy; 2023 | Curso JavaScript</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="js/app.js"></script>
 </body>
 </html>
