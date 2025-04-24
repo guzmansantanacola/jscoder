@@ -6,58 +6,85 @@
     <title>Simulador de Seguros | Curso JavaScript</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
-    <style>
-        .card {
-            transition: all 0.3s ease;
-        }
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-        }
-        .progress {
-            height: 25px;
-        }
-        
-        .fade-out {
-            animation: fadeOut 1s;
-        }
-        @keyframes fadeOut {
-            from { opacity: 1; }
-            to { opacity: 0; }
-        }
-    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+
 </head>
 <body>
-    
+    <!-- Spinner de carga -->
+    <div class="progress mt-3" style="width: 50%; margin: 0 auto;">
+        <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+    </div>
+    <div id="loading" class="animate__animated animate__fadeIn">
+        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
+        <div class="spinner-text">Cargando simulador...</div>
+    </div>
 
+    <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
-            <a class="navbar-brand" href="#">Seguros Plus</a>
+            <a class="navbar-brand fw-bold" href="#">
+                <i class="fas fa-shield-alt me-2"></i>Seguros Plus
+            </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link active" href="#cotizador">Cotizador</a>
+                        <a class="nav-link active" href="#cotizador">
+                            <i class="fas fa-calculator me-1"></i> Cotizador
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#clientes">Clientes</a>
+                        <a class="nav-link" href="#clientes">
+                            <i class="fas fa-users me-1"></i> Clientes
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#estadisticas">Estadísticas</a>
+                        <a class="nav-link" href="#estadisticas">
+                            <i class="fas fa-chart-bar me-1"></i> Estadísticas
+                        </a>
                     </li>
                 </ul>
             </div>
         </div>
     </nav>
 
-    <div class="container my-5">
+    <!-- Contenido principal -->
+    <div id="mainApp" class="container my-5" style="display: none;">
+        <!-- Sección Cotizador -->
         <section id="cotizador">
-            <h2 class="text-center mb-4 animate__animated animate__fadeIn">Simulador de Seguros</h2>
+            <div class="row mb-4">
+                <div class="col-12 text-center">
+                    <h2 class="fw-bold">Simulador de Seguros</h2>
+                    <p class="lead text-muted">Cotiza tu seguro en minutos</p>
+                </div>
+            </div>
+            
+            <!-- Lista de seguros disponibles -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card shadow-sm">
+                        <div class="card-header">
+                            <h5 class="mb-0">Nuestros Seguros Disponibles</h5>
+                        </div>
+                        <div class="card-body">
+                            <ul id="listaSeguros" class="list-unstyled">
+                                <!-- Dinámico -->
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Formulario de cotización -->
             <div class="row justify-content-center">
-                <div class="col-md-8">
+                <div class="col-lg-8">
                     <div class="card shadow">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">Formulario de Cotización</h5>
+                        </div>
                         <div class="card-body">
                             <form id="cotizadorForm">
                                 <div class="row g-3">
@@ -80,11 +107,11 @@
                                     </div>
                                     <div class="col-md-6">
                                         <label for="duracion" class="form-label">Duración (meses)</label>
-                                        <input type="number" class="form-control" id="duracion" required>
+                                        <input type="number" class="form-control" id="duracion" min="1" max="36" required>
                                         <div id="duracionError" class="invalid-feedback"></div>
                                     </div>
-                                    <div class="col-12">
-                                        <button type="submit" class="btn btn-primary w-100 py-2">
+                                    <div class="col-12 mt-4">
+                                        <button type="submit" class="btn btn-primary w-100 py-3">
                                             <span id="submitText">Calcular Cotización</span>
                                             <span id="submitSpinner" class="spinner-border spinner-border-sm d-none" role="status"></span>
                                         </button>
@@ -95,12 +122,15 @@
                     </div>
                 </div>
             </div>
-
+            
+            <!-- Resultados -->
             <div class="row mt-4">
                 <div class="col-md-6">
                     <div class="card shadow">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0">Resultado de Cotización</h5>
+                        </div>
                         <div class="card-body">
-                            <h5 class="card-title">Resultado de Cotización</h5>
                             <div id="resultado" class="text-center py-4">
                                 <p class="text-muted">Complete el formulario para ver su cotización</p>
                             </div>
@@ -109,8 +139,10 @@
                 </div>
                 <div class="col-md-6">
                     <div class="card shadow">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0">Resumen Total</h5>
+                        </div>
                         <div class="card-body">
-                            <h5 class="card-title">Resumen Total</h5>
                             <div id="totalSeguros" class="text-center py-4">
                                 <p class="text-muted">No hay clientes registrados</p>
                             </div>
@@ -119,58 +151,92 @@
                 </div>
             </div>
         </section>
-
-        <section id="clientes" class="mt-5">
-            <h2 class="text-center mb-4">Clientes Registrados</h2>
+        
+        <!-- Sección Clientes -->
+        <section id="clientes" class="mt-5 pt-5">
+            <div class="row mb-4">
+                <div class="col-12 text-center">
+                    <h2 class="fw-bold">Clientes Registrados</h2>
+                    <p class="text-muted">Historial de todas las cotizaciones</p>
+                </div>
+            </div>
+            
             <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Listado de Clientes</h5>
+                </div>
                 <div class="card-body">
                     <div class="table-responsive">
                         <table class="table table-hover">
-                            <thead>
+                            <thead class="table-light">
                                 <tr>
                                     <th>Nombre</th>
                                     <th>Edad</th>
                                     <th>Seguro</th>
                                     <th>Duración</th>
                                     <th>Fecha</th>
+                                    <th>Total</th>
                                     <th>Acciones</th>
                                 </tr>
                             </thead>
                             <tbody id="listaClientes">
                                 <tr>
-                                    <td colspan="6" class="text-center">No hay clientes registrados</td>
+                                    <td colspan="7" class="text-center py-4">No hay clientes registrados</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
-                    <div class="d-flex justify-content-between mt-3">
+                    
+                    <div class="d-flex justify-content-between mt-4">
                         <button id="exportarClientes" class="btn btn-outline-primary">
-                            Exportar a JSON
+                            <i class="fas fa-download me-2"></i>Exportar a JSON
                         </button>
                         <button id="limpiarClientes" class="btn btn-outline-danger">
-                            Limpiar Todos
+                            <i class="fas fa-trash-alt me-2"></i>Limpiar Todos
                         </button>
                     </div>
                 </div>
             </div>
         </section>
-
-        <section id="estadisticas" class="mt-5">
-            <h2 class="text-center mb-4">Estadísticas</h2>
+        
+        <!-- Sección Estadísticas -->
+        <section id="estadisticas" class="mt-5 pt-5">
+            <div class="row mb-4">
+                <div class="col-12 text-center">
+                    <h2 class="fw-bold">Estadísticas</h2>
+                    <p class="text-muted">Análisis de tus cotizaciones</p>
+                </div>
+            </div>
+            
             <div class="row">
-                <div class="col-md-6">
+                <div class="col-lg-6">
                     <div class="card shadow mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">Distribución de Seguros</h5>
+                        </div>
                         <div class="card-body">
-                            <h5 class="card-title">Distribución de Seguros</h5>
-                            <div id="graficoSeguros" style="height: 300px;"></div>
+                            <div class="chart-container">
+                                <canvas id="graficoSeguros"></canvas>
+                                <div id="graficoSegurosPlaceholder" class="chart-placeholder">
+                                    No hay datos para mostrar. Realice cotizaciones para ver estadísticas.
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-6">
+                
+                <div class="col-lg-6">
                     <div class="card shadow mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">Ingresos por Mes</h5>
+                        </div>
                         <div class="card-body">
-                            <h5 class="card-title">Ingresos por Mes</h5>
-                            <div id="graficoIngresos" style="height: 300px;"></div>
+                            <div class="chart-container">
+                                <canvas id="graficoIngresos"></canvas>
+                                <div id="graficoIngresosPlaceholder" class="chart-placeholder">
+                                    No hay datos para mostrar. Realice cotizaciones para ver estadísticas.
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -178,15 +244,38 @@
         </section>
     </div>
 
+    <!-- Footer -->
     <footer class="bg-dark text-white py-4 mt-5">
         <div class="container text-center">
-            <p>Simulador de Seguros &copy; 2023 | Curso JavaScript</p>
+            <p class="mb-0">Simulador de Seguros &copy; 2023 | Curso JavaScript</p>
         </div>
     </footer>
 
+    <!-- Font Awesome (para íconos) -->
+    <script src="https://kit.fontawesome.com/your-code.js" crossorigin="anonymous"></script>
+    
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="js/app.js"></script>
+    
+    <!-- Tu archivo JS -->
+    <script src="js/main.js"></script>
+    
+    <!-- Script para inicialización -->
+    <script>
+        // Mostrar spinner al inicio
+        document.addEventListener('DOMContentLoaded', function() {
+            // Simular carga
+            setTimeout(function() {
+                document.getElementById('loading').classList.add('fade-out');
+                document.getElementById('mainApp').style.display = 'block';
+            }, 1500);
+        });
+    </script>
 </body>
 </html>

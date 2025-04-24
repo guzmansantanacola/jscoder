@@ -1,0 +1,42 @@
+[
+    {
+      "id": 1,
+      "tipo": "basica",
+      "costoMensual": 500,
+      "descripcion": "Cobertura básica para daños menores. Incluye protección contra incendios y robos.",
+      "cobertura": "Hasta $50,000",
+      "requisitos": "Mayor de 18 años"
+    },
+    {
+      "id": 2,
+      "tipo": "completa",
+      "costoMensual": 1000,
+      "descripcion": "Cobertura completa para todo tipo de daños. Incluye asistencia en viaje.",
+      "cobertura": "Hasta $150,000",
+      "requisitos": "Mayor de 18 años, sin siniestros recientes"
+    },
+    {
+      "id": 3,
+      "tipo": "premium",
+      "costoMensual": 1500,
+      "descripcion": "Cobertura premium con asistencia 24/7. Incluye protección legal y seguro de vida básico.",
+      "cobertura": "Hasta $300,000",
+      "requisitos": "Mayor de 21 años, evaluación de riesgo"
+    },
+    {
+      "id": 4,
+      "tipo": "familiar",
+      "costoMensual": 1200,
+      "descripcion": "Paquete familiar que cubre a todos los miembros del hogar.",
+      "cobertura": "Hasta $200,000 por familiar",
+      "requisitos": "Familia nuclear (hasta 2 adultos y 3 menores)"
+    },
+    {
+      "id": 5,
+      "tipo": "empresarial",
+      "costoMensual": 2500,
+      "descripcion": "Cobertura para pequeñas y medianas empresas. Incluye protección de activos.",
+      "cobertura": "Hasta $500,000",
+      "requisitos": "Empresa registrada, mínimo 6 meses de operación"
+    }
+  ]

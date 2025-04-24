@@ -1,132 +1,276 @@
-// Clase principal del simulador
 class SimuladorSeguros {
   constructor() {
     this.clientes = [];
     this.seguros = [];
-    this.init();
+    
+    // Verificar elementos críticos antes de iniciar
+    if (!this.verificarElementosCriticos()) {
+      console.error("Elementos críticos del DOM no encontrados");
+      return;
+    }
+    
+    this.init().catch(error => {
+      console.error("Error al inicializar el simulador:", error);
+      this.mostrarErrorInicializacion();
+    });
+  }
+
+  // Verificar que los elementos esenciales existen
+  verificarElementosCriticos() {
+    const elementosRequeridos = [
+      'loading', 'progressBar', 'mainApp', 'cotizadorForm',
+      'tipo', 'resultado', 'listaClientes', 'totalSeguros'
+    ];
+    
+    return elementosRequeridos.every(id => {
+      const elemento = document.getElementById(id);
+      if (!elemento) {
+        console.error(`Elemento con ID '${id}' no encontrado`);
+        return false;
+      }
+      return true;
+    });
   }
 
   async init() {
-    await this.simularCarga();
-    await this.cargarSeguros();
-    this.cargarClientes();
-    this.setupEventos();
-    this.mostrarVistaPrincipal();
+    try {
+      await this.simularCarga();
+      await this.cargarSeguros();
+      this.cargarClientes();
+      this.setupEventos();
+      this.mostrarVistaPrincipal();
+    } catch (error) {
+      console.error("Error en la inicialización:", error);
+      this.mostrarErrorInicializacion();
+    }
   }
 
   async simularCarga() {
     return new Promise((resolve) => {
-      const progressBar = document.getElementById('progressBar');
-      let progress = 0;
-      const interval = setInterval(() => {
-        progress += 5;
-        progressBar.style.width = `${progress}%`;
-        if (progress >= 100) {
-          clearInterval(interval);
-          document.getElementById('loading').classList.add('animate__animated', 'animate__fadeOut');
-          setTimeout(() => {
-            document.getElementById('loading').style.display = 'none';
+        const progressBar = document.getElementById('progressBar');
+        const progressContainer = document.querySelector('.progress.mt-3');
+        
+        if (!progressBar || !progressContainer) {
+            console.warn("Elementos de progreso no encontrados");
+            this.ocultarSpinner();
             resolve();
-          }, 1000);
+            return;
         }
-      }, 100);
+
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += 5;
+            progressBar.style.width = `${progress}%`;
+            
+            if (progress >= 100) {
+                clearInterval(interval);
+                progressContainer.style.display = 'none'; // Ocultar directamente
+                this.ocultarSpinner();
+                resolve();
+            }
+        }, 100);
     });
+}
+
+  ocultarSpinner() {
+    const loadingElement = document.getElementById('loading');
+    if (loadingElement) {
+      loadingElement.classList.add('animate__animated', 'animate__fadeOut');
+      setTimeout(() => {
+        loadingElement.style.display = 'none';
+      }, 1000);
+    }
+  }
+
+  mostrarErrorInicializacion() {
+    const loadingElement = document.getElementById('loading');
+    if (loadingElement) {
+      loadingElement.innerHTML = `
+        <div class="alert alert-danger">
+          <h4>Error al cargar el simulador</h4>
+          <p>Recarga la página o intenta más tarde</p>
+        </div>
+      `;
+    }
   }
 
   async cargarSeguros() {
     try {
-      const response = await fetch('data/seguros.json');
-      if (!response.ok) throw new Error('No se pudieron cargar los seguros');
+      const response = await fetch('./data/seguros.json');
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       this.seguros = await response.json();
       this.mostrarOpcionesSeguros();
+      
+      // Mostrar también en la lista de seguros
+      this.mostrarListaSeguros();
+      
     } catch (error) {
       console.error('Error al cargar seguros:', error);
+      
+      // Datos de respaldo
       this.seguros = [
         { id: 1, tipo: "basica", costoMensual: 500, descripcion: "Cobertura básica para daños menores." },
         { id: 2, tipo: "completa", costoMensual: 1000, descripcion: "Cobertura completa para todo tipo de daños." },
         { id: 3, tipo: "premium", costoMensual: 1500, descripcion: "Cobertura premium con asistencia 24/7." }
       ];
+      
       this.mostrarOpcionesSeguros();
-      Swal.fire({ icon: 'warning', title: 'Modo offline', text: 'Se cargaron datos locales de respaldo', timer: 2000 });
+      this.mostrarListaSeguros();
+      
+      Swal.fire({
+        icon: 'warning',
+        title: 'Modo offline',
+        text: 'Se cargaron datos locales de respaldo',
+        timer: 2000
+      });
     }
   }
 
   mostrarOpcionesSeguros() {
     const select = document.getElementById('tipo');
-    select.innerHTML = '<option value="">Seleccione...</option>';
+    if (!select) return;
+    
+    select.innerHTML = '<option value="" disabled selected>Seleccione un seguro...</option>';
+    
     this.seguros.forEach(seguro => {
       const option = document.createElement('option');
       option.value = seguro.tipo;
-      option.textContent = `${seguro.tipo.charAt(0).toUpperCase() + seguro.tipo.slice(1)} ($${seguro.costoMensual}/mes)`;
+      option.textContent = `${this.capitalizeFirstLetter(seguro.tipo)} ($${seguro.costoMensual}/mes)`;
       select.appendChild(option);
     });
   }
 
+  mostrarListaSeguros() {
+    const listaSeguros = document.getElementById('listaSeguros');
+    if (!listaSeguros) return;
+    
+    listaSeguros.innerHTML = this.seguros.map(seguro => `
+      <div class="card mb-3">
+        <div class="card-body">
+          <h5 class="card-title">${this.capitalizeFirstLetter(seguro.tipo)}</h5>
+          <h6 class="card-subtitle mb-2 text-muted">$${seguro.costoMensual}/mes</h6>
+          <p class="card-text">${seguro.descripcion}</p>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  }
+
   cargarClientes() {
-    const clientesGuardados = localStorage.getItem('clientesSeguros');
-    if (clientesGuardados) {
-      this.clientes = JSON.parse(clientesGuardados);
-      this.mostrarClientes();
-      this.actualizarEstadisticas();
+    try {
+      const clientesGuardados = localStorage.getItem('clientesSeguros');
+      if (clientesGuardados) {
+        this.clientes = JSON.parse(clientesGuardados);
+        this.mostrarClientes();
+        this.actualizarEstadisticas();
+        this.actualizarResumenTotal();
+      }
+    } catch (error) {
+      console.error("Error al cargar clientes:", error);
     }
   }
 
   setupEventos() {
-    document.getElementById('cotizadorForm').addEventListener('submit', (e) => this.procesarFormulario(e));
-    document.getElementById('limpiarClientes').addEventListener('click', () => this.limpiarClientes());
-    document.getElementById('exportarClientes').addEventListener('click', () => this.exportarClientes());
-    document.getElementById('nombre').addEventListener('input', (e) => this.validarNombre(e.target.value));
-    document.getElementById('edad').addEventListener('input', (e) => this.validarEdad(e.target.value));
+    // Verificar que los elementos existen antes de agregar eventos
+    const addEventIfExists = (id, event, fn) => {
+      const element = document.getElementById(id);
+      if (element) {
+        element.addEventListener(event, fn.bind(this));
+      } else {
+        console.warn(`Elemento ${id} no encontrado para agregar evento`);
+      }
+    };
+
+    addEventIfExists('cotizadorForm', 'submit', this.procesarFormulario);
+    addEventIfExists('limpiarClientes', 'click', this.limpiarClientes);
+    addEventIfExists('exportarClientes', 'click', this.exportarClientes);
+    addEventIfExists('nombre', 'input', (e) => this.validarNombre(e.target.value));
+    addEventIfExists('edad', 'input', (e) => this.validarEdad(e.target.value));
   }
 
   async procesarFormulario(e) {
     e.preventDefault();
+    
     const btnSubmit = e.target.querySelector('button[type="submit"]');
     const submitText = document.getElementById('submitText');
     const spinner = document.getElementById('submitSpinner');
-    submitText.textContent = 'Procesando...';
-    spinner.classList.remove('d-none');
-    btnSubmit.disabled = true;
-    await new Promise(resolve => setTimeout(resolve, 800));
-
-    const nombre = document.getElementById('nombre').value.trim();
-    const edad = parseInt(document.getElementById('edad').value);
-    const tipo = document.getElementById('tipo').value;
-    const duracion = parseInt(document.getElementById('duracion').value);
-
-    if (!this.validarFormulario(nombre, edad, tipo, duracion)) {
-      submitText.textContent = 'Calcular Cotización';
-      spinner.classList.add('d-none');
-      btnSubmit.disabled = false;
+    
+    if (!btnSubmit || !submitText || !spinner) {
+      console.error("Elementos del formulario no encontrados");
       return;
     }
 
-    const nuevoCliente = {
-      id: Date.now(),
-      nombre,
-      edad,
-      tipoSeguro: tipo,
-      duracion,
-      fechaRegistro: new Date().toLocaleDateString('es-ES'),
-      costoTotal: this.calcularCosto(tipo, duracion)
-    };
+    // Mostrar estado de carga
+    submitText.textContent = 'Procesando...';
+    spinner.classList.remove('d-none');
+    btnSubmit.disabled = true;
 
-    this.clientes.push(nuevoCliente);
-    localStorage.setItem('clientesSeguros', JSON.stringify(this.clientes));
-    this.mostrarResultado(nuevoCliente);
-    this.mostrarClientes();
-    this.actualizarEstadisticas();
-    e.target.reset();
-    submitText.textContent = 'Cotización Exitosa!';
-    btnSubmit.classList.replace('btn-primary', 'btn-success');
+    try {
+      // Simular procesamiento
+      await new Promise(resolve => setTimeout(resolve, 800));
 
-    setTimeout(() => {
-      btnSubmit.classList.replace('btn-success', 'btn-primary');
+      // Obtener valores del formulario
+      const nombre = document.getElementById('nombre')?.value.trim();
+      const edad = parseInt(document.getElementById('edad')?.value);
+      const tipo = document.getElementById('tipo')?.value;
+      const duracion = parseInt(document.getElementById('duracion')?.value);
+
+      // Validar
+      if (!this.validarFormulario(nombre, edad, tipo, duracion)) {
+        throw new Error("Validación fallida");
+      }
+
+      // Crear nuevo cliente
+      const nuevoCliente = {
+        id: Date.now(),
+        nombre,
+        edad,
+        tipoSeguro: tipo,
+        duracion,
+        fechaRegistro: new Date().toLocaleDateString('es-ES'),
+        costoTotal: this.calcularCosto(tipo, duracion)
+      };
+
+      // Guardar cliente
+      this.clientes.push(nuevoCliente);
+      localStorage.setItem('clientesSeguros', JSON.stringify(this.clientes));
+      
+      // Actualizar vistas
+      this.mostrarResultado(nuevoCliente);
+      this.mostrarClientes();
+      this.actualizarEstadisticas();
+      
+      // Resetear formulario
+      e.target.reset();
+      
+      // Mostrar éxito
+      submitText.textContent = '¡Cotización Exitosa!';
+      btnSubmit.classList.replace('btn-primary', 'btn-success');
+
+      setTimeout(() => {
+        btnSubmit.classList.replace('btn-success', 'btn-primary');
+        submitText.textContent = 'Calcular Cotización';
+        spinner.classList.add('d-none');
+        btnSubmit.disabled = false;
+      }, 2000);
+
+    } catch (error) {
+      console.error("Error al procesar formulario:", error);
+      
+      // Restaurar estado del botón
       submitText.textContent = 'Calcular Cotización';
       spinner.classList.add('d-none');
       btnSubmit.disabled = false;
-    }, 2000);
+    }
   }
+
 
   validarFormulario(nombre, edad, tipo, duracion) {
     return this.validarNombre(nombre) && this.validarEdad(edad) && this.validarTipo(tipo) && this.validarDuracion(duracion);
@@ -254,19 +398,195 @@ class SimuladorSeguros {
     totalElement.innerHTML = `<strong>Total Cotizado:</strong> $${total} por ${cantidad} cliente(s)`;
   }
 
-  actualizarEstadisticas() {
-    const estadisticas = document.getElementById('estadisticas');
-    const tipos = {};
-    this.clientes.forEach(c => tipos[c.tipoSeguro] = (tipos[c.tipoSeguro] || 0) + 1);
-    estadisticas.innerHTML = Object.entries(tipos).map(([tipo, count]) => `
-      <p>${tipo.charAt(0).toUpperCase() + tipo.slice(1)}: ${count} cliente(s)</p>
-    `).join('');
-  }
+ actualizarEstadisticas() {
+    if (this.clientes.length === 0) {
+        // Mostrar placeholders si no hay datos
+        document.getElementById('graficoSegurosPlaceholder').style.display = 'flex';
+        document.getElementById('graficoIngresosPlaceholder').style.display = 'flex';
+        
+        // Ocultar canvas si no hay datos
+        document.getElementById('graficoSeguros').style.display = 'none';
+        document.getElementById('graficoIngresos').style.display = 'none';
+        return;
+    }
+    
+    // Ocultar placeholders
+    document.getElementById('graficoSegurosPlaceholder').style.display = 'none';
+    document.getElementById('graficoIngresosPlaceholder').style.display = 'none';
+    
+    // Mostrar canvas
+    document.getElementById('graficoSeguros').style.display = 'block';
+    document.getElementById('graficoIngresos').style.display = 'block';
+    
+    // Procesar datos para los gráficos
+    const datosSeguros = this.procesarDatosSeguros();
+    const datosIngresos = this.procesarDatosIngresos();
+    
+    // Crear o actualizar gráficos
+    this.crearGraficoSeguros(datosSeguros);
+    this.crearGraficoIngresos(datosIngresos);
+}
 
+// Nuevos métodos auxiliares para procesar datos
+procesarDatosSeguros() {
+    const tiposSeguro = {};
+    
+    this.clientes.forEach(cliente => {
+        if (!tiposSeguro[cliente.tipoSeguro]) {
+            tiposSeguro[cliente.tipoSeguro] = 0;
+        }
+        tiposSeguro[cliente.tipoSeguro]++;
+    });
+    
+    return {
+        labels: Object.keys(tiposSeguro).map(tipo => this.capitalizeFirstLetter(tipo)),
+        data: Object.values(tiposSeguro),
+        colors: this.generarColores(Object.keys(tiposSeguro).length)
+    };
+}
+
+procesarDatosIngresos() {
+    const ingresosPorMes = {};
+    const nombresMeses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    
+    this.clientes.forEach(cliente => {
+        // Asumimos que fechaRegistro está en formato 'dd/mm/aaaa'
+        const [dia, mes, ano] = cliente.fechaRegistro.split('/');
+        const claveMes = `${ano}-${mes.padStart(2, '0')}`;
+        
+        if (!ingresosPorMes[claveMes]) {
+            ingresosPorMes[claveMes] = 0;
+        }
+        ingresosPorMes[claveMes] += cliente.costoTotal;
+    });
+    
+    // Ordenar por mes
+    const mesesOrdenados = Object.keys(ingresosPorMes).sort();
+    
+    return {
+        labels: mesesOrdenados.map(mes => {
+            const [ano, mesNum] = mes.split('-');
+            return `${nombresMeses[parseInt(mesNum) - 1]} ${ano}`;
+        }),
+        data: mesesOrdenados.map(mes => ingresosPorMes[mes]),
+        color: '#007bff'
+    };
+}
+
+generarColores(cantidad) {
+    const colores = [];
+    for (let i = 0; i < cantidad; i++) {
+        colores.push(`hsl(${(i * 360 / cantidad)}, 70%, 50%)`);
+    }
+    return colores;
+}
+
+// Métodos para crear los gráficos
+crearGraficoSeguros(datos) {
+    const ctx = document.getElementById('graficoSeguros').getContext('2d');
+    
+    // Destruir gráfico anterior si existe
+    if (this.graficoSeguros) {
+        this.graficoSeguros.destroy();
+    }
+    
+    this.graficoSeguros = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: datos.labels,
+            datasets: [{
+                data: datos.data,
+                backgroundColor: datos.colors,
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.raw || 0;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = Math.round((value / total) * 100);
+                            return `${label}: ${value} (${percentage}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+crearGraficoIngresos(datos) {
+    const ctx = document.getElementById('graficoIngresos').getContext('2d');
+    
+    // Destruir gráfico anterior si existe
+    if (this.graficoIngresos) {
+        this.graficoIngresos.destroy();
+    }
+    
+    this.graficoIngresos = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: datos.labels,
+            datasets: [{
+                label: 'Ingresos ($)',
+                data: datos.data,
+                backgroundColor: datos.color,
+                borderColor: datos.color,
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + value.toLocaleString();
+                        }
+                    }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return '$' + context.raw.toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
   mostrarVistaPrincipal() {
     document.getElementById('mainApp').classList.remove('d-none');
   }
 }
 
 // Inicialización
-window.addEventListener('DOMContentLoaded', () => new SimuladorSeguros());
+document.addEventListener('DOMContentLoaded', () => {
+  try {
+    new SimuladorSeguros();
+  } catch (error) {
+    console.error("Error crítico al iniciar la aplicación:", error);
+    const loadingElement = document.getElementById('loading');
+    if (loadingElement) {
+      loadingElement.innerHTML = `
+        <div class="alert alert-danger">
+          <h4>Error crítico</h4>
+          <p>No se pudo iniciar la aplicación. Recarga la página.</p>
+        </div>
+      `;
+    }
+  }
+});
